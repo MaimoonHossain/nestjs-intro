@@ -14,8 +14,10 @@ import { PostsService } from './providers/posts.service';
 import { GetPostsParamDto } from './dtos/get-posts-param.dto';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { PatchPostDto } from './dtos/patch-post.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('posts')
+@ApiTags('Posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
