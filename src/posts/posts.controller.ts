@@ -14,7 +14,7 @@ import { PostsService } from './providers/posts.service';
 import { GetPostsParamDto } from './dtos/get-posts-param.dto';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { PatchPostDto } from './dtos/patch-post.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('posts')
 @ApiTags('Posts')
@@ -37,12 +37,26 @@ export class PostsController {
     return this.postsService.findAll(getPostParamDto, limit, page);
   }
 
+  @ApiOperation({
+    summary: 'Create a new blog post.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'You get a 201 response if your post is created successfully',
+  })
   @Post()
   createPost(@Body(new ValidationPipe()) createPostDto: CreatePostDto) {
     console.log(createPostDto);
     return this.postsService.create(createPostDto);
   }
 
+  @ApiOperation({
+    summary: 'Updates a new blog post.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'You get a 200 response if your post is updated successfully',
+  })
   @Patch(':id')
   patchPost(
     @Param('id', ParseIntPipe) id: number,
