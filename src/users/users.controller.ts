@@ -69,9 +69,8 @@ export class UsersController {
 
   // 4️⃣ Create a new user
   @Post()
-  createUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
-    console.log(createUserDto);
-    return `Created user with data`;
+  createUser(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.createUser(createUserDto);
   }
 
   @Patch()
