@@ -1,67 +1,63 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
-  ValidationPipe,
 } from '@nestjs/common';
 import { PostsService } from './providers/posts.service';
-import { GetPostsParamDto } from './dtos/get-posts-param.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { PatchPostDto } from './dtos/patch-post.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('posts')
 @ApiTags('Posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    /*
+     *  Injecting Posts Service
+     */
+    private readonly postsService: PostsService,
+  ) {}
 
-  // get post by ID
-  @Get(':id')
-  getPost(@Param('id', ParseIntPipe) id: number) {
-    return this.postsService.findOne(id);
-  }
-
-  // Get post details with optional query parameter
-  @Get()
-  getPostDetails(
-    @Param() getPostParamDto: GetPostsParamDto,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  ) {
-    return this.postsService.findAll(getPostParamDto, limit, page);
+  /*
+   * GET localhost:3000/posts/:userId
+   */
+  @Get('/')
+  public getPosts() {
+    return this.postsService.findAll();
   }
 
   @ApiOperation({
-    summary: 'Create a new blog post.',
+    summary: 'Creates a new blog post',
   })
   @ApiResponse({
     status: 201,
     description: 'You get a 201 response if your post is created successfully',
   })
   @Post()
-  createPost(@Body(new ValidationPipe()) createPostDto: CreatePostDto) {
-    console.log(createPostDto);
+  public createPost(@Body() createPostDto: CreatePostDto) {
     return this.postsService.create(createPostDto);
   }
 
   @ApiOperation({
-    summary: 'Updates a new blog post.',
+    summary: 'Updates an existing blog post',
   })
   @ApiResponse({
     status: 200,
-    description: 'You get a 200 response if your post is updated successfully',
+    description: 'A 200 response if the post is updated successfully',
   })
-  @Patch(':id')
-  patchPost(
-    @Param('id', ParseIntPipe) id: number,
-    @Body(new ValidationPipe()) patchPostDto: PatchPostDto,
-  ) {
-    return this.postsService.patch(id, patchPostDto);
+  @Patch()
+  public updatePost(@Body() patchPostsDto: PatchPostDto) {
+    console.log(patchPostsDto);
+  }
+
+  @Delete()
+  public deletePost(@Query('id', ParseIntPipe) id: number) {
+    return this.postsService.delete(id);
   }
 }
