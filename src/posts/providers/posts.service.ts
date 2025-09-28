@@ -31,33 +31,31 @@ export class PostsService {
    * Method to create a new post
    */
   public async create(createPostDto: CreatePostDto) {
+    // Find the author from database based on authorId
+    let author = await this.usersService.findOneById(createPostDto.authorId);
+
     const post = this.postsRepository.create({
       ...createPostDto,
       metaOptions: createPostDto.metaOptions
-        ? (createPostDto.metaOptions as any) // let cascade handle persistence
+        ? (createPostDto.metaOptions as any)
         : undefined,
+      author: author ? author : undefined,
     });
 
     return await this.postsRepository.save(post);
   }
 
   public async findAll() {
-    // const user = this.usersService.findOneById(Number(userId));
-
-    let posts = await this.postsRepository.find({});
+    let posts = await this.postsRepository.find({
+      relations: ['author', 'metaOptions'],
+    });
 
     return posts;
   }
 
   public async delete(id: number) {
-    // Find the post
-    let post = await this.postsRepository.findOneBy({ id });
     // Deleting the post
     await this.postsRepository.delete(id);
-    // Delete meta options if post and metaOptions exist
-    if (post?.metaOptions?.id) {
-      await this.metaOptionsRepository.delete(post.metaOptions.id);
-    }
     // confirmation
     return { message: 'Post deleted successfully' };
   }
