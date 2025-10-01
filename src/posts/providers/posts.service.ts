@@ -1,5 +1,9 @@
 import { CreatePostDto } from '../dtos/create-post.dto';
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  RequestTimeoutException,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/providers/users.service';
 import { Repository } from 'typeorm';
 import { Post } from '../post.entity';
@@ -67,30 +71,61 @@ export class PostsService {
   }
 
   public async update(patchPostDto: PatchPostDto) {
-    // Find the Tags
-    let tags = await this.tagsService.findMultipleTags(
-      patchPostDto.tags as any,
-    );
-    // Find the Post
-    let post = await this.postsRepository.findOneBy({
-      id: patchPostDto.id,
-    });
-    // Update the properties of the post
-    if (post) {
-      post.title = patchPostDto.title ?? post.title;
-      post.content = patchPostDto.content ?? post.content;
-      post.status = patchPostDto.status ?? post.status;
-      post.postType = patchPostDto.postType ?? post.postType;
-      post.slug = patchPostDto.slug ?? post.slug;
-      post.featuredImageUrl =
-        patchPostDto.featuredImageUrl ?? post.featuredImageUrl;
-      post.publishOn = patchPostDto.publishOn ?? post.publishOn;
-      // Assign the new tags
-      post.tags = tags;
+    let tags: any = undefined;
+    let post: any = undefined;
 
-      // Save the post and return
-      return await this.postsRepository.save(post);
+    try {
+      // Find the Tags
+      tags = await this.tagsService.findMultipleTags(patchPostDto.tags as any);
+    } catch (error) {
+      throw new RequestTimeoutException('Request timed out, please try again', {
+        description: 'Could not connect to database',
+      });
     }
+
+    /* 
+      Number of tags need to be equal
+    */
+    if (patchPostDto.tags && tags.length !== patchPostDto.tags.length) {
+      throw new BadRequestException('Number of tags must be equal');
+    }
+
+    try {
+      // Find the Post
+      post = await this.postsRepository.findOneBy({
+        id: patchPostDto.id,
+      });
+    } catch (error) {
+      throw new RequestTimeoutException('Request timed out, please try again', {
+        description: 'Could not connect to database',
+      });
+    }
+
+    if (!post) {
+      throw new BadRequestException('Post not found');
+    }
+    // Update the properties of the post
+
+    post.title = patchPostDto.title ?? post.title;
+    post.content = patchPostDto.content ?? post.content;
+    post.status = patchPostDto.status ?? post.status;
+    post.postType = patchPostDto.postType ?? post.postType;
+    post.slug = patchPostDto.slug ?? post.slug;
+    post.featuredImageUrl =
+      patchPostDto.featuredImageUrl ?? post.featuredImageUrl;
+    post.publishOn = patchPostDto.publishOn ?? post.publishOn;
+    // Assign the new tags
+    post.tags = tags;
+
+    try {
+      await this.postsRepository.save(post);
+    } catch (error) {
+      throw new RequestTimeoutException('Request timed out, please try again', {
+        description: 'Could not connect to database',
+      });
+    }
+
+    return post;
   }
 
   public async delete(id: number) {

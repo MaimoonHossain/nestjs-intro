@@ -1,6 +1,14 @@
 import { CreateUserDto } from './../dtos/create-user.dto';
 import { AuthService } from './../../auth/providers/auth.service';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  RequestTimeoutException,
+} from '@nestjs/common';
 import { GetUsersParamDto } from '../dtos/get-users-param.dto';
 import { Repository } from 'typeorm';
 import { User } from '../user.entity';
@@ -34,16 +42,37 @@ export class UsersService {
   ) {}
 
   public async createUser(createUserDto: CreateUserDto) {
-    // Check is user exists with same email
-    const existingUser = await this.usersRepository.findOne({
-      where: {
-        email: createUserDto.email,
-      },
-    });
+    let existingUser: User | null = null;
+
+    try {
+      // Check is user exists with same email
+      existingUser = await this.usersRepository.findOne({
+        where: {
+          email: createUserDto.email,
+        },
+      });
+    } catch (error) {
+      throw new RequestTimeoutException('Request timed out, please try again', {
+        description: 'Could not connect to database',
+      });
+    }
+
+    if (existingUser) {
+      throw new BadRequestException('User already exists with same email');
+    }
+
     // Handle exception
     // Create a new user
     let newUser = this.usersRepository.create(createUserDto);
-    newUser = await this.usersRepository.save(newUser);
+
+    try {
+      newUser = await this.usersRepository.save(newUser);
+    } catch (error) {
+      throw new RequestTimeoutException('Request timed out, please try again', {
+        description: 'Could not connect to database',
+      });
+    }
+
     return newUser;
   }
   /**
@@ -57,17 +86,30 @@ export class UsersService {
     limit: number,
     page: number,
   ) {
-    console.log(this.profileConfiguration.apiKey);
-    return [
+    throw new HttpException(
       {
-        firstName: 'John',
-        email: 'john@gmail.com',
+        status: HttpStatus.MOVED_PERMANENTLY,
+        error: 'This route has been deprecated. Please use /v2/users',
+        fileName: 'users.service.ts',
+        lineNumber: 74,
       },
+      HttpStatus.MOVED_PERMANENTLY,
       {
-        firstName: 'Alice',
-        email: 'alice@gmail.com',
+        cause: new Error(),
+        description: 'This route has been deprecated. Please use /v2/users',
       },
-    ];
+    );
+    // console.log(this.profileConfiguration.apiKey);
+    // return [
+    //   {
+    //     firstName: 'John',
+    //     email: 'john@gmail.com',
+    //   },
+    //   {
+    //     firstName: 'Alice',
+    //     email: 'alice@gmail.com',
+    //   },
+    // ];
   }
 
   /**
@@ -75,6 +117,21 @@ export class UsersService {
    * @param id user id
    */
   public async findOneById(id: number) {
-    return await this.usersRepository.findOneBy({ id });
+    // Find the user
+    let user: User | null = null;
+
+    try {
+      user = await this.usersRepository.findOneBy({ id });
+    } catch (error) {
+      throw new RequestTimeoutException('Request timed out, please try again', {
+        description: 'Could not connect to database',
+      });
+    }
+
+    if (!user) {
+      throw new BadRequestException('User does not exist');
+    }
+
+    return user;
   }
 }
