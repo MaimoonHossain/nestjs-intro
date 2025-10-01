@@ -104,8 +104,8 @@ export class PostsService {
     if (!post) {
       throw new BadRequestException('Post not found');
     }
-    // Update the properties of the post
 
+    // Update the properties of the post
     post.title = patchPostDto.title ?? post.title;
     post.content = patchPostDto.content ?? post.content;
     post.status = patchPostDto.status ?? post.status;
