@@ -16,6 +16,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import type { ConfigType } from '@nestjs/config';
 import profileConfig from '../config/profile.config';
+import { DataSource } from 'typeorm/browser';
+import { UsersCreateManyProvider } from './users-create-many.provider';
 
 /**
  * Class to connect users table and perform business operations
@@ -39,6 +41,16 @@ export class UsersService {
 
     @Inject(profileConfig.KEY)
     private readonly profileConfiguration: ConfigType<typeof profileConfig>,
+
+    /*
+     * Injecting Datasource
+     */
+    private readonly dataSource: DataSource,
+
+    /*
+     * Injecting usersCreateManyProvider
+     */
+    private readonly usersCreateManyProvider: UsersCreateManyProvider,
   ) {}
 
   public async createUser(createUserDto: CreateUserDto) {
@@ -133,5 +145,9 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  public async createMany(createUsersDto: CreateUserDto[]) {
+    return await this.usersCreateManyProvider.createMany(createUsersDto);
   }
 }
