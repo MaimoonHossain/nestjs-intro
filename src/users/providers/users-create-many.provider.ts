@@ -3,30 +3,33 @@ import {
   Injectable,
   RequestTimeoutException,
 } from '@nestjs/common';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import { User } from '../user.entity';
-import { DataSource } from 'typeorm';
+
 import { CreateManyUsersDto } from '../dtos/create-many-users.dto';
+import { DataSource } from 'typeorm';
+import { User } from '../user.entity';
 
 @Injectable()
 export class UsersCreateManyProvider {
   constructor(
-    /*
-     * Injecting Datasource
+    /**
+     * Inject the datasource
      */
-    private readonly dataSource: DataSource,
+    private dataSource: DataSource,
   ) {}
+
   public async createMany(createManyUsersDto: CreateManyUsersDto) {
     let newUsers: User[] = [];
+
     // Create Query Runner Instance
     const queryRunner = this.dataSource.createQueryRunner();
+
     try {
-      // Create Query Runner to datasource
+      // Connect the query ryunner to the datasource
       await queryRunner.connect();
-      // Start Transaction
+      // Start the transaction
       await queryRunner.startTransaction();
     } catch (error) {
-      throw new RequestTimeoutException('Could not connect to the DB');
+      throw new RequestTimeoutException('Could not connect to the database');
     }
 
     try {
@@ -35,24 +38,24 @@ export class UsersCreateManyProvider {
         let result = await queryRunner.manager.save(newUser);
         newUsers.push(result);
       }
-      // If successful commit
       await queryRunner.commitTransaction();
-      return newUsers;
-    } catch (err) {
-      // If unsuccessful rollback
+    } catch (error) {
+      // since we have errors lets rollback the changes we made
       await queryRunner.rollbackTransaction();
       throw new ConflictException('Could not complete the transaction', {
-        description: String(err),
+        description: String(error),
       });
     } finally {
       try {
-        // Release connection
+        // you need to release a queryRunner which was manually instantiated
         await queryRunner.release();
-      } catch (err) {
-        throw new RequestTimeoutException('Could not release the connection', {
-          description: String(err),
-        });
+      } catch (error) {
+        throw new RequestTimeoutException(
+          'Could not release the query runner connection',
+        );
       }
     }
+
+    return newUsers;
   }
 }

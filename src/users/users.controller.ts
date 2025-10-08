@@ -1,37 +1,37 @@
 import {
   Controller,
+  Delete,
   Get,
-  Post,
   Param,
-  Body,
+  Patch,
+  Post,
+  Put,
   Query,
-  Req,
+  Body,
+  Headers,
+  Ip,
   ParseIntPipe,
   DefaultValuePipe,
   ValidationPipe,
-  Patch,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { GetUsersParamDto } from './dtos/get-users-param.dto';
 import { PatchUserDto } from './dtos/patch-user.dto';
 import { UsersService } from './providers/users.service';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiQuery, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateManyUsersDto } from './dtos/create-many-users.dto';
 
 @Controller('users')
 @ApiTags('Users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-  // 1️⃣ Get user by ID
-  @Get(':id')
-  getUser(@Param('id') id: string) {
-    return `You requested user with ID: ${id}`;
-  }
+  constructor(
+    // Injecting Users Service
+    private readonly usersService: UsersService,
+  ) {}
 
-  // 2️⃣ Get user details with optional query parameter
-  @Get('')
+  @Get('/:id')
   @ApiOperation({
-    summary: 'Fetches a registered users on the application',
+    summary: 'Fetches a list of registered users on the application',
   })
   @ApiResponse({
     status: 200,
@@ -49,33 +49,24 @@ export class UsersController {
     type: 'number',
     required: false,
     description:
-      'The position of the page number that you want the api to return',
+      'The position of the page number that you want the API to return',
     example: 1,
   })
-  getUserDetails(
+  public getUsers(
     @Param() getUserParamDto: GetUsersParamDto,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number, // optional
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
   ) {
     return this.usersService.findAll(getUserParamDto, limit, page);
   }
 
-  // 3️⃣ Catch-all for any path after ID
-  @Get(':id/*')
-  getUserWildcard(@Param('id') id: string, @Req() req: any) {
-    // Extract the wildcard path
-    const path = req.url.split(`/users/${id}/`)[1];
-    return `User ID: ${id}, Path: ${path}`;
-  }
-
-  // 4️⃣ Create a new user
   @Post()
-  createUser(@Body() createUserDto: CreateUserDto) {
+  public createUsers(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
 
   @Post('create-many')
-  createManyUsers(@Body() createManyUsersDto: CreateManyUsersDto) {
+  public createManyUsers(@Body() createManyUsersDto: CreateManyUsersDto) {
     return this.usersService.createMany(createManyUsersDto);
   }
 
