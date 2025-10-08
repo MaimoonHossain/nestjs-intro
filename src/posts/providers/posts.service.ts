@@ -13,6 +13,7 @@ import { MetaOption } from 'src/meta-options/meta-option.entity';
 import { TagsService } from 'src/tags/providers/tags.service';
 import { PatchPostDto } from '../dtos/patch-post.dto';
 import { GetPostsDto } from '../dtos/get-posts.dto';
+import { Paginated } from 'src/common/pagination/interfaces/paginated.interface';
 
 @Injectable()
 export class PostsService {
@@ -69,16 +70,14 @@ export class PostsService {
     return await this.postsRepository.save(post);
   }
 
-  public async findAll(postQuery: GetPostsDto) {
-    let posts = await this.paginationProvider.paginateQuery(
+  public async findAll(postQuery: GetPostsDto): Promise<Paginated<Post>> {
+    return this.paginationProvider.paginateQuery(
       {
         limit: postQuery.limit,
         page: postQuery.page,
       },
       this.postsRepository,
     );
-
-    return posts;
   }
 
   public async update(patchPostDto: PatchPostDto) {
