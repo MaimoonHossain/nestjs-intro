@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import jwtConfig from '../config/jwt.config';
 import type { ConfigType } from '@nestjs/config';
 import { ActiveUserData } from '../interfaces/active-user-data.interface';
+import { GenerateTokensProvider } from './generate-tokens.provider';
 
 @Injectable()
 export class SignInProvider {
@@ -29,15 +30,9 @@ export class SignInProvider {
     private readonly hashingProvider: HashingProvider,
 
     /*
-     * Inject JWT Service
+     * inject generateTokensProvider
      */
-    private readonly jwtService: JwtService,
-
-    /*
-     * Inject JWT Service
-     */
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly generateTokensProvider: GenerateTokensProvider,
   ) {}
 
   public async signIn(signInDto: SignInDto) {
@@ -67,19 +62,6 @@ export class SignInProvider {
       throw new UnauthorizedException('Incorrect Passwored');
     }
 
-    const accessToken = await this.jwtService.signAsync(
-      {
-        sub: user.id,
-        email: user.email,
-      } as ActiveUserData,
-      {
-        audience: this.jwtConfiguration.audience,
-        issuer: this.jwtConfiguration.issuer,
-        secret: this.jwtConfiguration.secret,
-        expiresIn: this.jwtConfiguration.accessTokenTtl,
-      },
-    );
-
-    return accessToken;
+    return this.generateTokensProvider.generateTokens(user);
   }
 }
