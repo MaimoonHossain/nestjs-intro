@@ -1,5 +1,3 @@
-import { UsersService } from 'src/users/providers/users.service';
-import { SignInDto } from './../dtos/signin.dto';
 import {
   forwardRef,
   Inject,
@@ -8,12 +6,10 @@ import {
   RequestTimeoutException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { HashingProvider } from './hashing.provider';
-import { JwtService } from '@nestjs/jwt';
-import jwtConfig from '../config/jwt.config';
-import type { ConfigType } from '@nestjs/config';
-import { ActiveUserData } from '../interfaces/active-user-data.interface';
+import { UsersService } from 'src/users/providers/users.service';
+import { SignInDto } from './../dtos/signin.dto';
 import { GenerateTokensProvider } from './generate-tokens.provider';
+import { HashingProvider } from './hashing.provider';
 
 @Injectable()
 export class SignInProvider {
