@@ -1,12 +1,16 @@
-import { Body, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { CreatePostDto } from '../dtos/create-post.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from 'src/users/providers/users.service';
 import { Repository } from 'typeorm';
 import { Post } from '../post.entity';
-import { UsersService } from 'src/users/providers/users.service';
-import { MetaOption } from 'src/meta-options/meta-option.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { TagsService } from 'src/tags/providers/tags.service';
-import { PaginationProvider } from 'src/common/pagination/providers/pagination.provider';
+import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
 
 @Injectable()
 export class CreatePostProvider {
@@ -15,48 +19,51 @@ export class CreatePostProvider {
      * Injecting Users Service
      */
     private readonly usersService: UsersService,
-
     /**
-     * Injecting postsRepository
+     * Inject postsRepository
      */
     @InjectRepository(Post)
     private readonly postsRepository: Repository<Post>,
-
-    /**
-     * Inject metaOptionsRepository
-     */
-    @InjectRepository(MetaOption)
-    private readonly metaOptionsRepository: Repository<MetaOption>,
-
     /**
      * Inject TagsService
      */
     private readonly tagsService: TagsService,
-
-    /*
-     * Injecting PaginationProvider
-     */
-    private readonly paginationProvider: PaginationProvider,
   ) {}
 
-  public async create(@Body() createPostDto: CreatePostDto) {
-    // Find the author from database based on authorId
-    let author = await this.usersService.findOneById(createPostDto.authorId);
+  public async create(createPostDto: CreatePostDto, user: ActiveUserData) {
+    let author: any = null;
+    let tags: any[] = [];
 
-    // Find the tags from database based on tagsId
-    let tags = await this.tagsService.findMultipleTags(
-      createPostDto.tags as any,
-    );
+    try {
+      // Find author from database based on authorId
+      author = await this.usersService.findOneById(user.sub);
+      // Find tags
+      tags = await this.tagsService.findMultipleTags(createPostDto.tags ?? []);
+    } catch (error) {
+      throw new ConflictException(error);
+    }
 
-    const post = this.postsRepository.create({
+    if ((createPostDto.tags?.length ?? 0) !== tags.length) {
+      throw new BadRequestException('Please check your tag Ids');
+    }
+
+    // Create post
+    let post = this.postsRepository.create({
       ...createPostDto,
+      author: author,
+      tags: tags,
       metaOptions: createPostDto.metaOptions
-        ? (createPostDto.metaOptions as any)
+        ? createPostDto.metaOptions
         : undefined,
-      author: author ? author : undefined,
-      tags: tags ? tags : undefined,
     });
 
-    return await this.postsRepository.save(post);
+    try {
+      // return the post
+      return await this.postsRepository.save(post);
+    } catch (error) {
+      throw new ConflictException(error, {
+        description: 'Ensure post slug is unique and not a duplicate',
+      });
+    }
   }
 }
