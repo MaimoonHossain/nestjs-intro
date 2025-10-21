@@ -35,8 +35,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   config.update({
     credentials: {
-      accessKeyId: configService.get('appConfig.awsAccessKeyId'),
-      secretAccessKey: configService.get('appConfig.awsSecretAccessKey'),
+      accessKeyId: configService.get('appConfig.awsAccessKeyId') as any,
+      secretAccessKey: configService.get('appConfig.awsSecretAccessKey') as any,
     },
     region: configService.get('appConfig.awsRegion'),
   });

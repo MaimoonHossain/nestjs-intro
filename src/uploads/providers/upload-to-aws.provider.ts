@@ -21,7 +21,7 @@ export class UploadToAwsProvider {
     try {
       const uploadResult = await s3
         .upload({
-          Bucket: this.configService.get('appConfig.awsBucketName'),
+          Bucket: this.configService.get('appConfig.awsBucketName') as any,
           Body: file.buffer,
           Key: this.generateFileName(file),
           ContentType: file.mimetype,

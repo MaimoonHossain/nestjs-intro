@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to <%= appName %></title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f9f9f9;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .header {
+        background: #4f46e5;
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
+      .content {
+        padding: 30px;
+        color: #333;
+      }
+      .button {
+        display: inline-block;
+        background: #4f46e5;
+        color: white !important;
+        padding: 12px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+      .footer {
+        text-align: center;
+        color: #888;
+        font-size: 12px;
+        padding: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Welcome to <%= appName %>!</h1>
+      </div>
+
+      <div class="content">
+        <p>Hi <%= name %>,</p>
+        <p>
+          We’re excited to have you on board. Your account has been created
+          successfully.
+        </p>
+
+        <ul>
+          <li><strong>Email:</strong> <%= email %></li>
+          <li><strong>Login URL:</strong> <%= loginUrl %></li>
+        </ul>
+        <p>
+          If you didn’t sign up for <%= appName %>, you can safely ignore this
+          email.
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>
+          © <%= new Date().getFullYear() %> <%= appName %>. All rights
+          reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
