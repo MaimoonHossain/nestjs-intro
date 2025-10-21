@@ -24,6 +24,7 @@ import databaseConfig from './config/database.config';
 import jwtConfig from './auth/config/jwt.config';
 import environmentValidation from './config/environment.validation';
 import { DataResponseInterceptor } from './common/interceptors/data-response/data-response.interceptor';
+import { UploadsModule } from './uploads/uploads.module';
 
 // Get the current NODE_ENV
 const ENV = process.env.NODE_ENV;
@@ -60,6 +61,7 @@ const ENV = process.env.NODE_ENV;
     TagsModule,
     MetaOptionsModule,
     PaginationModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [
