@@ -38,8 +38,9 @@ export class User {
     type: 'varchar',
     nullable: true,
   })
+  @Exclude()
   googleId?: string;
 
   @OneToMany(() => Post, (post) => post.author)
-  posts: Post[];
+  posts?: Post[];
 }
